@@ -1,0 +1,400 @@
+<html><head><base href="https://bitpanda-academy.imgix.net/6b7d0532-91b0-4ddc-ab46-a77c1f835291/en-quoi-consiste-l_investissement-et-qui-peut-investir-personal-finance-6-bitpanda-academy.png?auto=compress%252Cformat&fit=min&fm=jpg&q=80&w=2100%20utiliser%20cette%20image%20comme%20logo%20du%20jeu">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investissement Tycoon - Avec Logo</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  #game-container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 90%;
+    max-width: 1000px;
+  }
+  #logo {
+    display: block;
+    margin: 0 auto 20px;
+    max-width: 100%;
+    height: auto;
+  }
+  h1, h2 {
+    text-align: center;
+    color: #2c3e50;
+  }
+  #balance, #total-investments, #luxury-items, #businesses {
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #27ae60;
+  }
+  .investment-option, .luxury-item, .business-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #ecf0f1;
+    border-radius: 5px;
+  }
+  button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  button:hover {
+    background-color: #2980b9;
+  }
+  button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+  }
+  #action-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+  }
+  #action-buttons button {
+    background-color: #e74c3c;
+  }
+  #action-buttons button:hover {
+    background-color: #c0392b;
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div id="game-container">
+    <img id="logo" src="https://bitpanda-academy.imgix.net/6b7d0532-91b0-4ddc-ab46-a77c1f835291/en-quoi-consiste-l_investissement-et-qui-peut-investir-personal-finance-6-bitpanda-academy.png?auto=compress%2Cformat&fit=min&fm=jpg&q=80&w=2100" alt="Logo du jeu Investissement Tycoon montrant des pièces de monnaie, des graphiques et des symboles financiers" width="300" height="200">
+    <h1>Investissement Tycoon</h1>
+    <div id="balance">Solde: $1,000</div>
+    <div id="total-investments">Investissements totaux: 0</div>
+    <div id="luxury-items">Articles de luxe: 0</div>
+    <div id="businesses">Entreprises: 0</div>
+    <div id="investments"></div>
+    <div id="action-buttons">
+      <button onclick="openShop()">Boutique de Luxe</button>
+      <button onclick="openBusiness()">Entreprises</button>
+      <button onclick="sellInvestments()">Vendre les investissements</button>
+    </div>
+  </div>
+
+  <div id="shopModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('shopModal')">&times;</span>
+      <h2>Boutique de Luxe</h2>
+      <div id="luxury-shop"></div>
+    </div>
+  </div>
+
+  <div id="businessModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('businessModal')">&times;</span>
+      <h2>Acheter des Entreprises</h2>
+      <div id="business-shop"></div>
+    </div>
+  </div>
+
+  <script>
+    const investments = [
+      { name: "Actions", cost: 1000, return: 0.15 },
+      { name: "Obligations", cost: 5000000, return: 0.08 },
+      { name: "Immobilier", cost: 20000000 , return: 0.12 },
+      { name: "Crypto-monnaies", cost: 250000000, return: 0.25 },
+      { name: "Fonds spéculatifs", cost: 500000000, return: 0.30 }
+    ];
+
+    const luxuryItems = [
+      { name: "Montre de luxe", cost: 500, prestige: 10 },
+      { name: "Voiture de sport", cost: 5000, prestige: 50 },
+      { name: "Yacht", cost: 50000, prestige: 200 },
+      { name: "Jet privé", cost: 200000, prestige: 500 },
+      { name: "Île privée", cost: 1000000, prestige: 1000 }
+    ];
+
+    const businesses = [
+      { name: "Café de luxe", cost: 5000, dailyProfit: 50 },
+      { name: "Restaurant étoilé", cost: 20000, dailyProfit: 200 },
+      { name: "Hôtel 5 étoiles", cost: 100000, dailyProfit: 1000 },
+      { name: "Centre commercial de luxe", cost: 500000, dailyProfit: 5000 },
+      { name: "Compagnie aérienne", cost: 2000000, dailyProfit: 20000 }
+    ];
+
+    let balance = 1000;
+    let portfolio = {};
+    let totalInvestments = 0;
+    let ownedLuxuryItems = {};
+    let ownedBusinesses = {};
+
+    function updateBalance() {
+      document.getElementById('balance').textContent = `Solde: $${balance.toLocaleString()}`;
+    }
+
+    function updateTotalInvestments() {
+      document.getElementById('total-investments').textContent = `Investissements totaux: ${totalInvestments}`;
+    }
+
+    function updateLuxuryItems() {
+      const totalItems = Object.values(ownedLuxuryItems).reduce((a, b) => a + b, 0);
+      document.getElementById('luxury-items').textContent = `Articles de luxe: ${totalItems}`;
+    }
+
+    function updateBusinesses() {
+      const totalBusinesses = Object.values(ownedBusinesses).reduce((a, b) => a + b, 0);
+      document.getElementById('businesses').textContent = `Entreprises: ${totalBusinesses}`;
+    }
+
+    function createInvestmentOptions() {
+      const container = document.getElementById('investments');
+      investments.forEach(inv => {
+        const div = document.createElement('div');
+        div.className = 'investment-option';
+        div.innerHTML = `
+          <span>${inv.name} - Coût: $${inv.cost.toLocaleString()} - Retour: ${inv.return * 100}% - Possédés: <span id="${inv.name}-count">0</span></span>
+          <button onclick="invest('${inv.name}')" id="${inv.name}-button">Investir</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function createLuxuryShop() {
+      const container = document.getElementById('luxury-shop');
+      luxuryItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'luxury-item';
+        div.innerHTML = `
+          <span>${item.name} - Coût: $${item.cost.toLocaleString()} - Prestige: ${item.prestige} - Possédés: <span id="${item.name}-count">0</span></span>
+          <button onclick="buyLuxuryItem('${item.name}')" id="${item.name}-button">Acheter</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function createBusinessShop() {
+      const container = document.getElementById('business-shop');
+      businesses.forEach(business => {
+        const div = document.createElement('div');
+        div.className = 'business-item';
+        div.innerHTML = `
+          <span>${business.name} - Coût: $${business.cost.toLocaleString()} - Profit quotidien: $${business.dailyProfit.toLocaleString()} - Possédés: <span id="${business.name}-count">0</span></span>
+          <button onclick="buyBusiness('${business.name}')" id="${business.name}-button">Acheter</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateButtons() {
+      investments.forEach(inv => {
+        const button = document.getElementById(`${inv.name}-button`);
+        button.disabled = balance < inv.cost;
+      });
+      luxuryItems.forEach(item => {
+        const button = document.getElementById(`${item.name}-button`);
+        button.disabled = balance < item.cost;
+      });
+      businesses.forEach(business => {
+        const button = document.getElementById(`${business.name}-button`);
+        button.disabled = balance < business.cost;
+      });
+    }
+
+    function invest(name) {
+      const investment = investments.find(inv => inv.name === name);
+      if (balance >= investment.cost) {
+        balance -= investment.cost;
+        portfolio[name] = (portfolio[name] || 0) + 1;
+        totalInvestments++;
+        updateBalance();
+        updateTotalInvestments();
+        document.getElementById(`${name}-count`).textContent = portfolio[name];
+        updateButtons();
+        saveGame();
+      } else {
+        alert("Fonds insuffisants pour cet investissement!");
+      }
+    }
+
+    function buyLuxuryItem(name) {
+      const item = luxuryItems.find(i => i.name === name);
+      if (balance >= item.cost) {
+        balance -= item.cost;
+        ownedLuxuryItems[name] = (ownedLuxuryItems[name] || 0) + 1;
+        updateBalance();
+        updateLuxuryItems();
+        document.getElementById(`${name}-count`).textContent = ownedLuxuryItems[name];
+        updateButtons();
+        saveGame();
+      } else {
+        alert("Fonds insuffisants pour cet article de luxe!");
+      }
+    }
+
+    function buyBusiness(name) {
+      const business = businesses.find(b => b.name === name);
+      if (balance >= business.cost) {
+        balance -= business.cost;
+        ownedBusinesses[name] = (ownedBusinesses[name] || 0) + 1;
+        updateBalance();
+        updateBusinesses();
+        document.getElementById(`${name}-count`).textContent = ownedBusinesses[name];
+        updateButtons();
+        saveGame();
+      } else {
+        alert("Fonds insuffisants pour acheter cette entreprise!");
+      }
+    }
+
+    function simulateReturns() {
+      Object.keys(portfolio).forEach(name => {
+        const investment = investments.find(inv => inv.name === name);
+        const returns = investment.cost * investment.return * portfolio[name];
+        balance += returns;
+      });
+      updateBalance();
+      updateButtons();
+      saveGame();
+    }
+
+    function collectBusinessProfits() {
+      let totalProfit = 0;
+      Object.keys(ownedBusinesses).forEach(name => {
+        const business = businesses.find(b => b.name === name);
+        totalProfit += business.dailyProfit * ownedBusinesses[name];
+      });
+      balance += totalProfit;
+      updateBalance();
+      updateButtons();
+      saveGame();
+      return totalProfit;
+    }
+
+    function sellInvestments() {
+      let totalValue = 0;
+      Object.keys(portfolio).forEach(name => {
+        const investment = investments.find(inv => inv.name === name);
+        totalValue += investment.cost * portfolio[name];
+        portfolio[name] = 0;
+        document.getElementById(`${name}-count`).textContent = 0;
+      });
+      balance += totalValue;
+      totalInvestments = 0;
+      updateBalance();
+      updateTotalInvestments();
+      updateButtons();
+      alert(`Vous avez vendu tous vos investissements pour $${totalValue.toLocaleString()}`);
+      saveGame();
+    }
+
+    function openShop() {
+      document.getElementById('shopModal').style.display = "block";
+    }
+
+    function openBusiness() {
+      document.getElementById('businessModal').style.display = "block";
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = "none";
+    }
+
+    function saveGame() {
+      const gameState = {
+        balance: balance,
+        portfolio: portfolio,
+        totalInvestments: totalInvestments,
+        ownedLuxuryItems: ownedLuxuryItems,
+        ownedBusinesses: ownedBusinesses
+      };
+      localStorage.setItem('investmentTycoonSave', JSON.stringify(gameState));
+    }
+
+    function loadGame() {
+      const savedGame = localStorage.getItem('investmentTycoonSave');
+      if (savedGame) {
+        const gameState = JSON.parse(savedGame);
+        balance = gameState.balance;
+        portfolio = gameState.portfolio;
+        totalInvestments = gameState.totalInvestments;
+        ownedLuxuryItems = gameState.ownedLuxuryItems || {};
+        ownedBusinesses = gameState.ownedBusinesses || {};
+        updateBalance();
+        updateTotalInvestments();
+        updateLuxuryItems();
+        updateBusinesses();
+        Object.keys(portfolio).forEach(name => {
+          const element = document.getElementById(`${name}-count`);
+          if (element) element.textContent = portfolio[name];
+        });
+        Object.keys(ownedLuxuryItems).forEach(name => {
+          const element = document.getElementById(`${name}-count`);
+          if (element) element.textContent = ownedLuxuryItems[name];
+        });
+        Object.keys(ownedBusinesses).forEach(name => {
+          const element = document.getElementById(`${name}-count`);
+          if (element) element.textContent = ownedBusinesses[name];
+        });
+      }
+      updateButtons();
+    }
+
+    createInvestmentOptions();
+    createLuxuryShop();
+    createBusinessShop();
+    loadGame();
+    updateButtons();
+    setInterval(simulateReturns, 10000); // Simulate returns every 10 seconds
+    setInterval(() => {
+      const profit = collectBusinessProfits();
+      if (profit > 0) {
+        alert(`Vos entreprises ont généré $${profit.toLocaleString()} aujourd'hui!`);
+      }
+    }, 86400000); // Collect business profits every 24 hours (in milliseconds)
+    setInterval(saveGame, 60000); // Auto-save every minute
+  </script>
+</body></html>
